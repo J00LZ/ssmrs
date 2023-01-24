@@ -369,7 +369,7 @@ fn fix_jumps(code: &mut Code) {
                 let end = max(target, current_idx);
                 let size = sizes[start..=end].iter().sum::<usize>() as i32;
                 if target < current_idx {
-                    *instr = Instr::BRA(-size);
+                    *instr = Instr::BRA(2-size);
                 } else {
                     *instr = Instr::BRA(size);
                 }
@@ -380,7 +380,7 @@ fn fix_jumps(code: &mut Code) {
                 let end = max(target, current_idx);
                 let size = sizes[start..=end].iter().sum::<usize>() as i32;
                 if target < current_idx {
-                    *instr = Instr::BRT(-size);
+                    *instr = Instr::BRT(2-size);
                 } else {
                     *instr = Instr::BRT(size);
                 }
@@ -391,7 +391,7 @@ fn fix_jumps(code: &mut Code) {
                 let end = max(target, current_idx);
                 let size = sizes[start..=end].iter().sum::<usize>() as i32;
                 if target < current_idx {
-                    *instr = Instr::BRF(-size);
+                    *instr = Instr::BRF(2-size);
                 } else {
                     *instr = Instr::BRF(size);
                 }
@@ -402,7 +402,7 @@ fn fix_jumps(code: &mut Code) {
                 let end = max(target, current_idx);
                 let size = sizes[start..=end].iter().sum::<usize>() as i32;
                 if target < current_idx {
-                    *instr = Instr::BSR(-size);
+                    *instr = Instr::BSR(2-size);
                 } else {
                     *instr = Instr::BSR(size);
                 }
