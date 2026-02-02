@@ -1,7 +1,7 @@
 use chumsky::{
     prelude::Simple,
     primitive::{choice, filter, just},
-    text::{self, ident, whitespace, TextParser},
+    text::{self, ident, whitespace, TextParser, Character},
     Error, Parser,
 };
 
@@ -36,10 +36,10 @@ fn parse_instr() -> impl Parser<char, Instr, Error = Simple<char>> {
         i("LDLA", Instr::LDLA, number),
         i("LDSA", Instr::LDSA, number),
         i("LDAA", Instr::LDAA, number),
-        i("BRA", Instr::Bra, text::ident()),
-        i("BRF", Instr::Brf, text::ident()),
-        i("BRT", Instr::Brt, text::ident()),
-        i("BSR", Instr::Bsr, text::ident()),
+        i("BRA", Instr::BRA, number),
+        i("BRF", Instr::BRF, number),
+        i("BRT", Instr::BRT, number),
+        i("BSR", Instr::BSR, number),
         i("LINK", Instr::LINK, number),
         i("AJS", Instr::AJS, number),
         i("SWPR", Instr::SWPR, parse_register()),
@@ -72,13 +72,25 @@ fn parse_instr() -> impl Parser<char, Instr, Error = Simple<char>> {
     .or(choice((
         w("SWPRR", Instr::SWPRR, parse_register(), parse_register()),
         w("LDRR", Instr::LDRR, parse_register(), parse_register()),
-        i("BRA", Instr::BRA, number),
-        i("BRF", Instr::BRF, number),
-        i("BRT", Instr::BRT, number),
-        i("BSR", Instr::BSR, number),
+        i("BRA", Instr::Bra, label()),
+        i("BRF", Instr::Brf, label()),
+        i("BRT", Instr::Brt, label()),
+        i("BSR", Instr::Bsr, label()),
         a(number),
     )))
-    .or(text::ident().then_ignore(just(":")).map(Instr::LABEL))
+    .or(label().then_ignore(just(":")).map(Instr::LABEL))
+}
+
+fn label<C: Character, E: Error<C>>() -> impl Parser<C, C::Collection, Error = E> + Copy + Clone
+{
+    filter(|c: &C| c.to_char().is_ascii_alphabetic() || c.to_char() == '_' || 
+           c.to_char() == '-' || (c.to_char() as u32 >= 0xA0 && c.to_char() as u32 <= 0xF0))
+        .map(Some)
+        .chain::<C, Vec<_>, _>(
+            filter(|c: &C| c.to_char().is_ascii_alphanumeric() || c.to_char() == '_' || 
+                   c.to_char() == '-' || (c.to_char() as u32 >= 0xA0 && c.to_char() as u32 <= 0xF0)).repeated(),
+        )
+        .collect()
 }
 
 fn instr(s: &'static str) -> impl Parser<char, (), Error = Simple<char>> {
